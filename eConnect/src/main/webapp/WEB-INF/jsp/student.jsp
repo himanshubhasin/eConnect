@@ -37,7 +37,7 @@
 		<th>Student Id</th>
 		<th>First Name</th>
 		<th>Last Name</th>
-		<th>Email</th>
+		<th>Email ID</th>
 		<c:forEach items="${studentList}" var="student">
 			<tr><td>${student.studentid}</td>
 			<td>${student.fname}</td>
