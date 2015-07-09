@@ -28,16 +28,16 @@ public class StudentDaoImpl implements StudentDao{
 	}
 
 	@Override
-	public void delete(int studentid) {
+	public void delete(String email) {
 		
 		//sessionFactory.getCurrentSession().delete(studentid);
-		sessionFactory.getCurrentSession().delete(getStudent(studentid));
+		sessionFactory.getCurrentSession().delete(getStudent(email));
 	}
 
 	@Override
-	public Student getStudent(int studentid) {
+	public Student getStudent(String email) {
 		
-		return (Student)sessionFactory.getCurrentSession().get(Student.class, studentid);
+		return (Student)sessionFactory.getCurrentSession().get(Student.class, email);
 	}
 
 	@Override

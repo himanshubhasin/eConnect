@@ -1,6 +1,5 @@
 package com.himanshu.controller;
 
-import java.lang.ProcessBuilder.Redirect;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,18 +25,36 @@ public class StudentController {
 	{		
 		Student student=new Student();
 		map.put("student", student);
-		map.put("studentList", studentService.getAllStudent());
+		
 		return "studentsignup";
 		
 	}
 	
-	@RequestMapping(value="/login.do", method=RequestMethod.POST)
+	@RequestMapping("/loginform.do")
 	public String loginForm(Map<String, Object> map)
 	{		
-		/*Student student=new Student();
+		Student student=new Student();
 		map.put("student", student);
-		map.put("studentList", studentService.getAllStudent());*/
-		return "studentsignup";
+		
+		return "studentlogin";
+		
+	}
+	
+	@RequestMapping("/login.do")
+	public String doLogin(@ModelAttribute Student student,Map<String, Object> map)
+	{		
+	    String stuemail=studentService.getStudent(student.getEmail()).getEmail();
+	    String stupwd=studentService.getStudent(student.getEmail()).getPassword();
+		
+		if(stuemail.equals(student.getEmail()) && stupwd.equals(student.getPassword()))
+		{	
+		 map.put("student", studentService.getStudent(student.getEmail()));
+		
+		return "loginsuccess";
+		}
+		
+		map.put("errormessage","Email or password is wrong!");
+		return "studentlogin";
 		
 	}
 	
@@ -56,11 +73,11 @@ public class StudentController {
 			StudentResult=student;
 			break;
 		case "delete":
-			studentService.delete(student.getStudentid());
+			studentService.delete(student.getEmail());
 			StudentResult=new Student();
 			break;
 		case "search":
-			Student searchedStudent=studentService.getStudent(student.getStudentid());
+			Student searchedStudent=studentService.getStudent(student.getEmail());
 			StudentResult=searchedStudent!=null? searchedStudent : new Student();
 			break;
 		default:

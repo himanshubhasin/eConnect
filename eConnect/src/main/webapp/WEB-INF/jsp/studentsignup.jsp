@@ -38,6 +38,7 @@
 			</tr>
 			<tr>
 				<td colspan="2"><input type="submit" name="action" value="SignUp" /></td>
+			</tr>
 		</table>
 	</form:form>
 </center>

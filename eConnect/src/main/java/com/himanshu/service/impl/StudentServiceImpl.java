@@ -31,15 +31,15 @@ public class StudentServiceImpl implements StudentService {
 	}
 
 	@Transactional
-	public void delete(int studentid) {
+	public void delete(String email) {
 		
-		studentDao.delete(studentid);
+		studentDao.delete(email);
 	}
 
 	@Transactional
-	public Student getStudent(int studentid) {
+	public Student getStudent(String email) {
 		
-		return studentDao.getStudent(studentid);
+		return studentDao.getStudent(email);
 	}
 
 	@Transactional

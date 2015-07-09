@@ -11,14 +11,11 @@ public class Student {
 
 	@Id
 	@Column
-	@GeneratedValue(strategy=GenerationType.AUTO)
-	private int studentid;
+	private String email;
 	@Column
 	private String fname;
 	@Column
 	private String lname;
-	@Column
-	private String email;
 	@Column
 	private String password;
 	@Column
@@ -37,11 +34,11 @@ public class Student {
 		this.email = email;
 	}*/
 	
-	public int getStudentid() {
-		return studentid;
+	public String getEmail() {
+		return email;
 	}
-	public void setStudentid(int studentid) {
-		this.studentid = studentid;
+	public void setEmail(String email) {
+		this.email = email;
 	}
 	public String getFname() {
 		return fname;
@@ -55,12 +52,7 @@ public class Student {
 	public void setLname(String lname) {
 		this.lname = lname;
 	}
-	public String getEmail() {
-		return email;
-	}
-	public void setEmail(String email) {
-		this.email = email;
-	}
+	
 	public String getPassword() {
 		return password;
 	}
