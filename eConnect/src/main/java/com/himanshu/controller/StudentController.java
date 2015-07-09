@@ -1,5 +1,6 @@
 package com.himanshu.controller;
 
+import java.lang.ProcessBuilder.Redirect;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,7 @@ public class StudentController {
 	private StudentService studentService;
 	
 	@RequestMapping("/index")
-	public String setupForm(Map<String, Object> map)
+	public String signupForm(Map<String, Object> map)
 	{		
 		Student student=new Student();
 		map.put("student", student);
@@ -30,12 +31,22 @@ public class StudentController {
 		
 	}
 	
-	@RequestMapping(value="/student.do", method=RequestMethod.POST)
-	public String doActions(@ModelAttribute Student student, BindingResult result, @RequestParam String action, Map<String,Object> map,Model model )
+	@RequestMapping(value="/login.do", method=RequestMethod.POST)
+	public String loginForm(Map<String, Object> map)
+	{		
+		/*Student student=new Student();
+		map.put("student", student);
+		map.put("studentList", studentService.getAllStudent());*/
+		return "studentsignup";
+		
+	}
+	
+	@RequestMapping(value="/signup.do", method=RequestMethod.POST)
+	public String doSignup(@ModelAttribute Student student, BindingResult result, @RequestParam String action, Map<String,Object> map,Model model )
 	{
 		Student StudentResult=new Student();
 		switch (action.toLowerCase()) {
-		case "SignUp":
+		case "signup":
 			studentService.add(student);
 			StudentResult=student;
 			model.addAttribute("successmessage", "You are successfully Registered! Thank You!");
@@ -58,6 +69,8 @@ public class StudentController {
 		/*map.put("successmessage", "You are successfully Registered! Thank You!");*/
 		map.put("student", StudentResult);
 		map.put("studentList", studentService.getAllStudent());
-		return "studentsignup";
+		return "redirect:index";
+		
+		
 	}
 }

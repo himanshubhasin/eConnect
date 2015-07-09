@@ -9,8 +9,8 @@
 <body>
 <center>
 <h2>Student Registration Form</h2>
-<h5>${successmessage}</h5>
-	<form:form action="student.do" method="post" commandName="student">
+<h5>${param.successmessage}</h5>
+	<form:form action="signup.do" method="post" commandName="student">
 		<table>
 			<tr>
 				<td>First Name:</td>
@@ -41,7 +41,7 @@
 		</table>
 	</form:form>
 </center>
-	<table border="1">
+	<%-- <table border="1">
 		<th>Student Id</th>
 		<th>First Name</th>
 		<th>Last Name</th>
@@ -56,6 +56,6 @@
 			<td>${student.dob}</td>
 			</tr>
 		</c:forEach>
-	</table>
+	</table> --%>
 </body>
 </html>
