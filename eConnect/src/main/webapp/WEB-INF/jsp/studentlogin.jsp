@@ -9,7 +9,7 @@
 <body>
 <center>
 <h2>Student Login</h2>
-<h5>${errormessage}</h5>
+<h5>${param.errormessage}</h5>
 	<form:form action="login.do" method="post" commandName="student">
 		<table>
 			<tr>

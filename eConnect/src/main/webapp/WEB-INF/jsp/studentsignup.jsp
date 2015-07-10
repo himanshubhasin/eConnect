@@ -8,6 +8,7 @@
 </head>
 <body>
 <center>
+<a href="index">Register</a> | <a href="loginform.do">Login</a>
 <h2>Student Registration Form</h2>
 <h5>${param.successmessage}</h5>
 	<form:form action="signup.do" method="post" commandName="student">

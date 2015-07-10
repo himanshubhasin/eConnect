@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import sun.invoke.empty.Empty;
+
 import com.himanshu.model.Student;
 import com.himanshu.service.StudentService;
 
@@ -42,19 +44,25 @@ public class StudentController {
 	
 	@RequestMapping("/login.do")
 	public String doLogin(@ModelAttribute Student student,Map<String, Object> map)
-	{		
+	{	
+		try{
 	    String stuemail=studentService.getStudent(student.getEmail()).getEmail();
 	    String stupwd=studentService.getStudent(student.getEmail()).getPassword();
 		
-		if(stuemail.equals(student.getEmail()) && stupwd.equals(student.getPassword()))
-		{	
-		 map.put("student", studentService.getStudent(student.getEmail()));
-		
-		return "loginsuccess";
+		if (stuemail!=null && stupwd!=null && !stuemail.equals("") && !stupwd.equals("") && stuemail.equals(student.getEmail())
+					&& stupwd.equals(student.getPassword())) {
+				map.put("student",
+						studentService.getStudent(student.getEmail()));
+
+				return "loginsuccess";
+			}
 		}
-		
-		map.put("errormessage","Email or password is wrong!");
-		return "studentlogin";
+		catch(Exception e)
+		{
+		map.put("errormessage", "Email or password is wrong!");
+		return "redirect:loginform.do";
+		}
+		return "redirect:loginform.do";
 		
 	}
 	

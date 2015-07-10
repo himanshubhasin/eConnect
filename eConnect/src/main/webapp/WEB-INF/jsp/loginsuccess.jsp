@@ -15,16 +15,16 @@ Valid Login
 		<th>Password</th>
 		<th>Confirm Password</th>
 		<th>Date of Birth</th>
-		
-			<tr>
+
+		<tr>
 			<td>${student.fname}</td>
 			<td>${student.lname}</td>
 			<td>${student.email}</td>
 			<td>${student.password}</td>
 			<td>${student.repassword}</td>
 			<td>${student.dob}</td>
-			</tr>
-		
+		</tr>
+
 	</table>
 </body>
 </html>
