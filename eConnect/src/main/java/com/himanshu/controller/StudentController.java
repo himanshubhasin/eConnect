@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import sun.invoke.empty.Empty;
 
 import com.himanshu.model.Student;
 import com.himanshu.service.StudentService;
@@ -63,6 +62,51 @@ public class StudentController {
 		return "redirect:loginform.do";
 		}
 		return "redirect:loginform.do";
+		
+	}
+	
+	@RequestMapping("/editstudent")
+	public String stuEditForm(Map<String, Object> map)
+	{	Student student=new Student();
+		map.put("student",student);
+		
+		return "editstudent";
+		
+	}
+	
+	@RequestMapping("/updatestudent.do")
+	public String stuUpdateProfile(@ModelAttribute Student student,Map<String, Object> map)
+	{	
+		Student StudentResult=new Student();
+		studentService.updateProfile(student, student.getEmail());
+		StudentResult=student;
+		map.put("successmessage", "Profile Change successfully");
+		map.put("student", StudentResult);
+		
+		return "editstudent";
+		
+	}
+	
+	@RequestMapping("/stuchangepwd")
+	public String stuChangePwdForm(Map<String, Object> map)
+	{	Student student=new Student();
+		map.put("student",student);
+		
+		return "stuchangepwd";
+		
+	}
+	
+	@RequestMapping("/stuchangepwd.do")
+	public String stuChangePwd(@ModelAttribute Student student,Map<String, Object> map)
+	{	
+		Student StudentResult=new Student();
+		studentService.changePassword(student, student.getEmail());
+		StudentResult=student;
+		map.put("email", student.getEmail());
+		map.put("stuchangepwd", "Password Change successfully");
+		map.put("student", StudentResult);
+		
+		return "redirect:stuchangepwd";
 		
 	}
 	

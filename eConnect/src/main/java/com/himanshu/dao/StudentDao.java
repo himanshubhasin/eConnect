@@ -11,4 +11,6 @@ public interface StudentDao {
 	public void delete(String email);
 	public Student getStudent(String email);
 	public List getAllStudent();
+	public void changePassword(Student student,String email);
+	public void updateProfile(Student student,String email);
 }

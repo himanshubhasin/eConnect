@@ -7,7 +7,11 @@
 <title>Login Successful</title>
 </head>
 <body>
-Valid Login
+<center>
+<a href="index">logout</a> | <a href="editstudent?email=${student.email}&fname=${student.fname}&lname=${student.lname}&dob=${student.dob}">Edit Profile</a> | <a href="stuchangepwd?email=${student.email}">Change Password</a><br/>
+Welcome! ${student.fname}
+<br/>
+<br/>
  <table border="1">
 		<th>First Name</th>
 		<th>Last Name</th>
@@ -26,5 +30,6 @@ Valid Login
 		</tr>
 
 	</table>
+</center>
 </body>
 </html>

@@ -47,5 +47,17 @@ public class StudentServiceImpl implements StudentService {
 		
 		return studentDao.getAllStudent();
 	}
+	
+	@Transactional
+	public void changePassword(Student student,String email)
+	{
+		studentDao.changePassword(student, email);
+	}
+	@Transactional
+	public void updateProfile(Student student,String email) {
+		
+		 studentDao.updateProfile(student, email);
+		 
+	}
 
 }

@@ -23,6 +23,7 @@ public class StudentDaoImpl implements StudentDao{
 	@Override
 	public void edit(Student student) {
 		
+		
 		sessionFactory.getCurrentSession().update(student);
 		
 	}
@@ -45,5 +46,27 @@ public class StudentDaoImpl implements StudentDao{
 		
 		return sessionFactory.getCurrentSession().createQuery("from Student").list();
 	}
-
+	
+	@Override
+	public void changePassword(Student student,String email) {
+		
+		 Student exictingStudent = (Student)sessionFactory.getCurrentSession().get(Student.class, email);
+		 exictingStudent.setPassword(student.getPassword());
+		 exictingStudent.setRepassword(student.getRepassword());
+		 
+		 sessionFactory.getCurrentSession().update(exictingStudent);
+		 
+	}
+	@Override
+	public void updateProfile(Student student,String email) {
+		
+		 Student exictingStudent = (Student)sessionFactory.getCurrentSession().get(Student.class, email);
+		 
+		 exictingStudent.setFname(student.getFname());
+		 exictingStudent.setLname(student.getLname());
+		 exictingStudent.setDob(student.getDob());
+				 
+		 sessionFactory.getCurrentSession().update(exictingStudent);
+		 
+	}
 }
