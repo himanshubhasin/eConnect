@@ -1,0 +1,213 @@
+import java.math.BigDecimal;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
+/**
+ * @author 
+ * 
+ * @remarks Utility class for primitive type conversion and null safety
+ */
+public class ValueUtil {
+    private static final Logger logger = Logger.getLogger(ValueUtil.class.getName());
+    
+    public static String getStringValue(String obj) {
+        String str = "";
+        try {
+            str = obj != null && !"".equals(obj) && !"null".equalsIgnoreCase(obj) ? obj : "";
+        } catch (Exception e) {
+            return null;
+        }
+        
+        return str;
+    }
+    
+    public static String getStringValueNotNull(String obj) {
+        String str = "";
+        try {
+            str = obj != null && !"".equals(obj) && !"null".equalsIgnoreCase(obj) ? obj : "";
+        } catch (Exception e) {
+            CASLogger.logError("", "Exception : ", e);
+        }
+        
+        return str;
+    }
+
+    public static Boolean isEmptyString(String obj) {
+    	Boolean isEmpty = false;
+        try {
+            if (obj == null || obj.isEmpty()) {
+            	isEmpty = true;
+            }
+        } catch (Exception e) {
+        	
+        	 CASLogger.logError("", "Exception : ", e);
+        }
+        return isEmpty;
+    }
+
+    public static Boolean isEmptyList(List<?> obj) {
+    	Boolean isEmpty = false;
+        try {
+            if (obj == null || obj.isEmpty()) {
+            	isEmpty = true;
+            }
+        } catch (Exception e) {
+        	
+        	 CASLogger.logError("", "Exception : ", e);
+        }
+        return isEmpty;
+    }
+
+    public static String getStringValueNotNull(Object obj) {
+        String str = "";
+        try {
+            str = obj != null && !"".equals(obj) ? obj.toString() : "";
+        } catch (Exception e) {
+        	
+        	 CASLogger.logError("", "Exception : ", e);
+        }
+        
+        return str;
+    }
+    
+    public static Long getLongValue(String str) {
+        Long obj = 0L;
+        try {
+            obj = str != null && !"".equals(str) ? Long.parseLong(str) : 0;
+    
+            if (obj == 0) {
+                return null;
+            }
+        } catch (Exception e) {
+            return null;
+        }
+        return obj;
+    }
+
+    public static Long getLongValueNotNull(String str) {
+        Long obj = 0L;
+        try {
+            obj = str != null && !"".equals(str) ? Long.parseLong(str) : 0;
+        } catch (Exception e) {
+            return 0l;
+        }
+        return obj;
+    }
+  
+    public static Double getDoubleValue(String str) {
+        Double obj = 0.0;
+        try {
+            obj = str != null && !"".equals(str) ? Double.parseDouble(str) : 0;
+    
+            if (obj == 0) {
+                return null;
+            }
+        } catch (Exception e) {
+            return null;
+        }
+        return obj;
+    }
+
+    public static Double getDoubleValueNotNull(String str) {
+        Double obj = 0.0;
+        try {
+            obj = str != null && !"".equals(str) ? Double.parseDouble(str) : 0;
+        } catch (Exception e) {
+            return 0D;
+        }
+        return obj;
+    }
+  
+    public static Integer getIntegerValue(String str) {
+        Integer obj = 0;
+        try {
+            obj = str != null && !"".equals(str) ? Integer.parseInt(str) : 0;
+        } catch (Exception e) {
+            return null;
+        }
+        return obj;
+    }
+
+    public static Integer getIntegerValueNotNull(String str) {
+        Integer obj = 0;
+        try {
+            obj = str != null && !"".equals(str) ? Integer.parseInt(str) : 0;
+        } catch (Exception e) {
+            return 0;
+        }
+        return obj;
+    }
+  
+    public static BigDecimal getBigdecimalValue(String str) {
+        BigDecimal obj = null;
+        try {
+            obj = str != null && !"".equals(str) ? new BigDecimal(str) : obj;
+        } catch (Exception e) {
+            return obj;
+        }
+        return obj;
+    }
+  
+    public static BigDecimal getBigdecimalValueNotNull(String str) {
+        BigDecimal obj = new BigDecimal(0);
+        try {
+            obj = str != null && !"".equals(str) ? new BigDecimal(str) : obj;
+        } catch (Exception e) {
+            return obj;
+        }
+        return obj;
+    }
+  
+    public static BigDecimal getBigdecimalValueNotNull(Object o) {
+        BigDecimal obj = new BigDecimal(0);
+        try {
+            obj = o != null && !"".equals(o) ? new BigDecimal(o.toString()) : obj;
+        } catch (Exception e) {
+            return obj;
+        }
+        return obj;
+    }
+  
+    public static boolean isValidString(String str) {
+        boolean isValid = true;
+
+        if (str.indexOf("'") != -1 || str.indexOf("\"") != -1) {
+            isValid = false;
+        }
+        
+        return isValid;
+    }
+
+    public static Boolean getBooleanValue(String str) {
+    	Boolean flag = false;
+    	
+    	try {
+    		flag = str != null && !"".equals(str) ? Boolean.parseBoolean(str) : false;
+    	} catch(Exception e) {
+    		logger.error(e);
+    	}
+    	
+    	return flag;
+    }
+    
+    public static Boolean getBooleanValue(Integer val) {
+    	Boolean flag = false;
+    	
+    	try {
+    		flag = val != null && val != 0 ? true : false;
+    	} catch(Exception e) {
+    		logger.error(e);
+    	}
+    	
+    	return flag;
+    }
+
+    public static int safeLongToInt(long l) {
+        if (l < Integer.MIN_VALUE || l > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException
+                (l + " cannot be cast to int without changing its value.");
+        }
+        return (int) l;
+    }
+}
