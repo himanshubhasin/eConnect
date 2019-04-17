@@ -1,0 +1,130 @@
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
+public class DateUtils {
+    private static final Logger logger = Logger
+            .getLogger(DateUtils.class.getName());
+
+    public static java.util.Date getUtilDateInFormat(String strInputDate,
+            String strFormat) {
+        java.util.Date outputDate = null;
+        try {
+            SimpleDateFormat dateFormat = new SimpleDateFormat(strFormat);
+            outputDate = dateFormat.parse(strInputDate);
+        } catch (ParseException e) {
+            logger.error(e);
+        } catch (Exception e) {
+            logger.error(e);
+        }
+        return outputDate;
+    }
+
+    public static String getStringDateFormat(java.util.Date dtDate,
+            String strFormat) {
+        String strDate = null;
+        try {
+            DateFormat formater = new SimpleDateFormat(strFormat);
+            strDate = formater.format(dtDate);
+        } catch (Exception e) {
+            logger.error(e);
+        }
+        return strDate;
+    }
+
+    public static Date getSQLDate(String strDate, String strFormat) {
+        Date dtDate = null;
+        try {
+            DateFormat formater = new SimpleDateFormat(strFormat);
+            java.util.Date parsedUtilDate = formater.parse(strDate);
+            dtDate = new Date(parsedUtilDate.getTime());
+        } catch (Exception e) {
+            logger.error(e);
+        }
+        return dtDate;
+    }
+
+    public static Date getSQLDate(java.util.Date dtDate) {
+        Date dtSQLDate = null;
+        try {
+            dtSQLDate = new Date(dtDate.getTime());
+        } catch (Exception e) {
+            logger.error(e);
+        }
+        return dtSQLDate;
+    }
+
+    public static Timestamp getTimeStamp() {
+        Timestamp t = null;
+        try {
+            t = new Timestamp(new java.util.Date().getTime());
+        } catch (Exception e) {
+            logger.error(e);
+        }
+
+        return t;
+    }
+
+    public static Calendar getCalendar(String strDate, String strFormat) {
+        Calendar cal = Calendar.getInstance();
+        java.util.Date dtDate;
+        try {
+            DateFormat formater = new SimpleDateFormat(strFormat);
+            java.util.Date parsedUtilDate = formater.parse(strDate);
+            dtDate = new Date(parsedUtilDate.getTime());
+            cal.setTime(dtDate);
+        } catch (Exception e) {
+            logger.error(e);
+        }
+        return cal;
+    }
+    
+    public static java.util.Date removeTime(java.util.Date date) {
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(date);
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		cal.set(Calendar.MILLISECOND, 0);		
+		return cal.getTime();
+	}
+    public static java.util.Date getNextWorkingMonday(List<String> holidayList) {
+    	
+    	Calendar now = Calendar.getInstance();
+    
+		now.set(Calendar.HOUR_OF_DAY, 18);
+		now.set(Calendar.MINUTE, 0);
+		now.set(Calendar.SECOND, 0);
+		now.set(Calendar.MILLISECOND, 0);
+		int weekday = now.get(Calendar.DAY_OF_WEEK);
+		if (weekday != Calendar.MONDAY)
+		{
+		    // calculate how much to add
+		    // the 2 is the difference between Saturday and Monday
+		    int days = (Calendar.SATURDAY - weekday + 2) % 7;
+		    now.add(Calendar.DAY_OF_YEAR, days);
+		}else{
+			now.add(Calendar.DAY_OF_YEAR, 7);
+		}
+		// now is the date you want
+		java.util.Date date = now.getTime();
+		
+		String formattedDate = new SimpleDateFormat("dd/MM/yyyy").format(date);
+		while(holidayList!=null && holidayList.contains(formattedDate)){
+			now.add(Calendar.DAY_OF_YEAR, 7);
+			date = now.getTime();
+			
+			formattedDate = new SimpleDateFormat("dd/MM/yyyy").format(date);
+		}
+		return date;
+    	
+    }
+   
+}
