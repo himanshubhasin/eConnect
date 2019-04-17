@@ -1,0 +1,1128 @@
+var isErrorFree = true;
+var valKeyDown;
+var valKeyUp;
+var mapOldValues = new Object();
+
+$.fn.hideDivOnChange = function(hideDivIdArray) {
+	var evnt = '';
+	$(this).find('input:not([type=button]), select, textarea').each(function () {
+		if ($(this).is("select")) {
+			evnt = 'change';
+		} else {
+			evnt = 'blur';
+		}
+		$(this).on('focus', function () {
+			mapOldValues[this.id] = this.value;
+		}).on(evnt, function () {
+			var isChanged = mapOldValues[this.id] != this.value;
+			if (isChanged) {
+				if (hideDivIdArray instanceof Array) {
+					for (var i in hideDivIdArray) {
+						$("#"+hideDivIdArray[i]).css("display", "none");
+					}
+				} else {
+					$("#"+hideDivIdArray).css("display", "none");
+				}
+			}
+		});
+	});
+	return this;
+}; 
+
+var dateFormat = function () {
+       var    token = /d{1,4}|m{1,4}|yy(?:yy)?|([HhMsTt])\1?|[LloSZ]|"[^"]*"|'[^']*'/g,
+              timezone = /\b(?:[PMCEA][SDP]T|(?:Pacific|Mountain|Central|Eastern|Atlantic) (?:Standard|Daylight|Prevailing) Time|(?:GMT|UTC)(?:[-+]\d{4})?)\b/g,
+              timezoneClip = /[^-+\dA-Z]/g,
+              pad = function (val, len) {
+                     val = String(val);
+                     len = len || 2;
+                     while (val.length < len) val = "0" + val;
+                     return val;
+              };
+
+       // Regexes and supporting functions are cached through closure
+       return function (date, mask, utc) {
+              var dF = dateFormat;
+
+              // You can't provide utc if you skip other args (use the "UTC:" mask prefix)
+              if (arguments.length == 1 && Object.prototype.toString.call(date) == "[object String]" && !/\d/.test(date)) {
+                     mask = date;
+                     date = undefined;
+              }
+
+              // Passing date through Date applies Date.parse, if necessary
+              date = date ? new Date(date) : new Date;
+              if (isNaN(date)) throw SyntaxError("invalid date");
+
+              mask = String(dF.masks[mask] || mask || dF.masks["default"]);
+
+              // Allow setting the utc argument via the mask
+              if (mask.slice(0, 4) == "UTC:") {
+                     mask = mask.slice(4);
+                     utc = true;
+              }
+
+              var    _ = utc ? "getUTC" : "get",
+                     d = date[_ + "Date"](),
+                     D = date[_ + "Day"](),
+                     m = date[_ + "Month"](),
+                     y = date[_ + "FullYear"](),
+                     H = date[_ + "Hours"](),
+                     M = date[_ + "Minutes"](),
+                     s = date[_ + "Seconds"](),
+                     L = date[_ + "Milliseconds"](),
+                     o = utc ? 0 : date.getTimezoneOffset(),
+                     flags = {
+                           d:    d,
+                           dd:   pad(d),
+                           ddd:  dF.i18n.dayNames[D],
+                           dddd: dF.i18n.dayNames[D + 7],
+                           m:    m + 1,
+                           mm:   pad(m + 1),
+                           mmm:  dF.i18n.monthNames[m],
+                           mmmm: dF.i18n.monthNames[m + 12],
+                           yy:   String(y).slice(2),
+                           yyyy: y,
+                           h:    H % 12 || 12,
+                           hh:   pad(H % 12 || 12),
+                           H:    H,
+                           HH:   pad(H),
+                           M:    M,
+                           MM:   pad(M),
+                           s:    s,
+                           ss:   pad(s),
+                           l:    pad(L, 3),
+                           L:    pad(L > 99 ? Math.round(L / 10) : L),
+                           t:    H < 12 ? "a"  : "p",
+                           tt:   H < 12 ? "am" : "pm",
+                           T:    H < 12 ? "A"  : "P",
+                           TT:   H < 12 ? "AM" : "PM",
+                           Z:    utc ? "UTC" : (String(date).match(timezone) || [""]).pop().replace(timezoneClip, ""),
+                           o:    (o > 0 ? "-" : "+") + pad(Math.floor(Math.abs(o) / 60) * 100 + Math.abs(o) % 60, 4),
+                           S:    ["th", "st", "nd", "rd"][d % 10 > 3 ? 0 : (d % 100 - d % 10 != 10) * d % 10]
+                     };
+
+              return mask.replace(token, function ($0) {
+                     return $0 in flags ? flags[$0] : $0.slice(1, $0.length - 1);
+              });
+       };
+}();
+
+// Some common format strings
+dateFormat.masks = {
+       "default":      "ddd mmm dd yyyy HH:MM:ss",
+       shortDate:      "m/d/yy",
+       mediumDate:     "mmm d, yyyy",
+       longDate:       "mmmm d, yyyy",
+       fullDate:       "dddd, mmmm d, yyyy",
+       shortTime:      "h:MM TT",
+       mediumTime:     "h:MM:ss TT",
+       longTime:       "h:MM:ss TT Z",
+       isoDate:        "yyyy-mm-dd",
+       isoTime:        "HH:MM:ss",
+       isoDateTime:    "yyyy-mm-dd'T'HH:MM:ss",
+       isoUtcDateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss'Z'"
+};
+
+// Internationalization strings
+dateFormat.i18n = {
+       dayNames: [
+              "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat",
+              "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+       ],
+       monthNames: [
+              "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+              "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
+       ]
+};
+
+// For convenience...
+Date.prototype.format = function (mask, utc) {
+       return dateFormat(this, mask, utc);
+};
+
+Date.prototype.addHours= function(h){
+    this.setHours(this.getHours()+h);
+    return this;
+};
+
+function getAllIdsOnPage() {
+	var arIds = new Array();
+	$('input:not([type=button]), select, label, textarea').each(function () {
+		if (getValue($(this).attr('id')) != '') {
+			arIds.push(this.id);
+		}
+	});
+	return arIds;
+}
+
+function reverseDate(iDate) {
+	if (getValue(iDate) != '') {
+		var arDateTime = iDate.split(' ');
+        var dt = arDateTime[0].split('-');
+        var time = '';
+        if (arDateTime.length == 1) {
+        	dt = dt[2] + '-' + dt[1] + '-' + dt[0];
+        } else {
+        	time = arDateTime[1];
+        }
+        return trimString(dt + ' ' + time);
+	}
+}
+
+function getFormattedDate(iDate) {
+   if (getValue(iDate) != '') {
+	   if ($.isNumeric(iDate)) {
+		   return new Date(iDate);
+	   } else {
+		   var arDateTime = iDate.split(' ');
+		   var dt = arDateTime[0].split('-');
+		   var time = '';
+		   var date;
+		   if (arDateTime.length == 1) {
+			   if (dt[2].length == 4) {
+				   date = new Date(dt[2], dt[1]-1, dt[0], 0, 0, 0);
+			   } else {
+				   date = new Date(dt[0], dt[1]-1, dt[2], 0, 0, 0);
+			   }
+		   } else {
+			   time = arDateTime[1].split(':');
+			   if (time.length == 2) {	//If time is of format - 19:45
+				   time.push('00');
+			   }
+			   if (dt[2].length == 4) {
+				   date = new Date(dt[2], dt[1]-1, dt[0], time[0], time[1], time[2]);
+				   //date = new Date(dt[2], dt[1]-1, dt[0], 0, 0, 0);
+			   } else {
+				   date = new Date(dt[0], dt[1]-1, dt[2], time[0], time[1], time[2]);
+				   //date = new Date(dt[0], dt[1]-1, dt[2], 0, 0, 0);
+			   }
+			   
+		   }
+		   return date;
+	   }
+   }
+}
+
+function getValue(val) {
+    if (val != null && val != undefined && val != 'null' && val != 'undefined') {
+        return trimString(val);
+    } else {
+        return '';
+    }
+}
+
+function getNumberValue(val) {
+	var intval = parseFloat(val);
+    if (!isNaN(intval)) {
+        return val;
+    } else {
+        return 0;
+    }
+}
+
+function trimString(str) {
+    try {
+        if(str != '') {
+            str = str.replace(/^\s+/, '');
+            str = str.replace(/\s+$/, '');
+        }
+    } catch (err) {}
+    return str;
+}
+
+function changeCase(obj, cas) {
+       if (cas == "U" || cas == "u") {
+              obj.value = obj.value.toLocaleUpperCase();
+       } else if (cas == "L" || cas == "l") {
+              obj.value = obj.value.toLocaleLowerCase();
+       } else {
+              obj.value = obj.value;
+       }
+}
+
+function checkRegex(obj, regPattern) {
+       
+       var val = obj.value;
+    var regex = new RegExp(regPattern);
+    if (regex.test(val)) {
+        return true;
+    } else {
+       obj.value = '';
+       alert("Please provide valid value !!!");
+        return false;
+    }
+}
+
+function populateSelect(el, items, isDefaultVal) {
+       el.options.length = 0;
+       if (isDefaultVal) el.options[0] = new Option('', '');
+
+    $.each(items, function () {
+        el.options[el.options.length] = new Option(this[1], this[0]);
+    });
+}
+
+function enableTableElements(tableId) {
+       $("#"+tableId).find("input,button,select").attr("disabled", false);
+}
+
+function disableTableElements(tableId) {
+       $("#"+tableId).find("input,button,select").attr("disabled", true);
+}
+
+function padString(val, len) {
+       val = String(val);
+       len = len || 2;
+       while (val.length < len) val = "0" + val;
+       return val;
+}
+
+function setFocus(id) {
+       $('#'+id).focus();   //This won't work on firefox
+       if (navigator.userAgent.search("Firefox") >= 0) {
+              setTimeout(function() { $('#'+id).focus(); }, 100);    //FireFox Hack
+       }
+}
+
+function convertToCommaString(val, isInt) {		// This method will convert values like 221543.3 into 221,543.30
+	if (val != '') {			// REMEBER!! convert back this value before sending it to server side
+		if (!isNaN(val)) {
+			var ar = val.toString().split('.');
+			var characteristic = ar[0];
+			if (!isInt) {
+				var mantissa;
+				if (ar.length == 1) {
+					mantissa = '00';
+				} else if (ar[1].length == 1) {
+					mantissa = ar[1] + '0';
+				} else {
+					mantissa = ar[1].substring(0, 2);
+				}
+				return parseFloat(characteristic).toLocaleString() + '.' + mantissa;
+			} else {
+				return parseInt(characteristic).toLocaleString();
+			}
+		} else {
+			if (!isInt) {
+				return 0.00;
+			} else {
+				return 0;
+			}
+		}
+	} else {
+		return val;
+	}
+}
+
+function convertCommaStringToNumber(str) {		// This method will convert values like 9,221,543.30 into 9221543.30
+	var val = str.replace(/,/g, '');
+	if (!isNaN(val)) {
+		return parseFloat(getNumberValue(val));
+	} else {
+		return str;
+	}
+}
+
+function convertDecimalToBinary(decimalNum) {
+       return parseInt(decimalNum).toString(2);
+}
+
+function convertBinaryToDecimal(binaryNum) {
+       return parseInt(binaryNum, 2);
+}
+
+function convertTimeToSeconds(time) {
+	//hms = '02:04:33';   // your input string
+	var a = time.split(':'); // split it at the colons
+	if (a.length == 2) {		//If input string is of format 19:05
+		a.push('00');
+	}
+
+	// minutes are worth 60 seconds. Hours are worth 60 minutes.
+	var seconds = (+a[0]) * 60 * 60 + (+a[1]) * 60 + (+a[2]); 
+	return seconds;
+}
+
+function containsArray(needles, haystack) {
+	for (var i = 0, len = needles.length; i < len; i++) {
+		if ($.inArray(needles[i], haystack) == -1)
+			return false;
+	}
+	return true;
+}
+
+function removeAllMessagesFromFeild(fieldId, isDate) {
+	if (isDate) {
+		showHidedateFieldError(fieldId, '', false);
+		showHidedateFieldWarrning(fieldId, '', false);
+	} else {
+		showHideFieldError(fieldId, '', false);
+		showHideFieldWarning(fieldId, '', false);
+		showHideFieldInfo(fieldId, '', false);
+	}
+}
+
+function checkEmptyFieldError(fieldId, errMsg) {
+       if (trimString($('#'+fieldId).val()) == '') {
+              showHideFieldError(fieldId, getValue(errMsg) == '' ? defaultErrMsg : errMsg, true);
+              return true;
+       } else {
+              showHideFieldError(fieldId, '', false);
+              return false;
+       }
+}
+
+function showHideFieldError(fieldId, errorMsg, isShow) {
+       if (isShow) {
+              $('#'+fieldId).parent().find('[id^=divError_]').remove();
+              $('#'+fieldId).parent().append("<div id='divError_"+fieldId+"'>"+ errorMsg +"</div>");
+              $('#divError_'+fieldId).addClass("error");
+              if ($('#'+fieldId).hasClass('errorinputNo')) {
+                     $('#divError_'+fieldId).addClass("errorinputNo");
+              } else if ($('#'+fieldId).hasClass('errorinputDigit')) {
+                     $('#divError_'+fieldId).addClass("errorinputDigit");
+              }
+              
+              $('#'+fieldId).parent('div').parent('div').addClass("has-error");
+              isErrorFree = false;
+       } else {
+              $('#divError_'+fieldId).removeClass("error");
+              $('#divError_'+fieldId).text('');
+              $('#'+fieldId).parent('div').parent('div').removeClass("has-error");
+       }
+}
+
+function showHideFieldWarning(fieldId, warnMsg, isShow) {
+	if (isShow) {
+		$('#'+fieldId).parent().find('[id^=divWarning_]').remove();
+		$('#'+fieldId).parent().append("<div id='divWarning_"+fieldId+"'>"+ warnMsg +"</div>");
+		$('#divWarning_'+fieldId).addClass("warning");
+		if ($('#'+fieldId).hasClass('errorinputNo')) {
+			$('#divWarning_'+fieldId).addClass("errorinputNo");
+		} else if ($('#'+fieldId).hasClass('errorinputDigit')) {
+			$('#divWarning_'+fieldId).addClass("errorinputDigit");
+		}
+		$('#'+fieldId).parent('div').parent('div').addClass("warning-error");
+	} else {
+		$('#divWarning_'+fieldId).removeClass("warning");
+		$('#divWarning_'+fieldId).text('');
+		$('#'+fieldId).parent('div').parent('div').removeClass("warning-error");
+	}
+}
+
+function showHideFieldInfo(fieldId, infoMsg, isShow) {
+	if (isShow) {
+		$('#'+fieldId).parent().find('[id^=divInfo_]').remove();
+		$('#'+fieldId).parent().append("<div id='divInfo_"+fieldId+"'>"+ infoMsg +"</div>");
+		$('#divInfo_'+fieldId).addClass("info-2");
+		if ($('#'+fieldId).hasClass('errorinputNo')) {
+			$('#divInfo_'+fieldId).addClass("errorinputNo");
+		} else if ($('#'+fieldId).hasClass('errorinputDigit')) {
+			$('#divInfo_'+fieldId).addClass("errorinputDigit");
+		}
+		$('#'+fieldId).parent('div').parent('div').addClass("has-feedback");
+	} else {
+		$('#divInfo_'+fieldId).removeClass("info-2");
+		$('#divInfo_'+fieldId).text('');
+		$('#'+fieldId).parent('div').parent('div').removeClass("has-feedback");
+	}
+}
+
+function checkEmptydateFieldError(fieldId, errMsg) {
+   if ($('#'+fieldId).val() == '') {
+          showHidedateFieldError(fieldId, getValue(errMsg) == '' ? defaultErrMsg : errMsg, true);
+          return true;
+   } else {
+          showHidedateFieldError(fieldId, '', false);
+          return false;
+   }
+}
+
+function showHidedateFieldError(fieldId, errorMsg, isShow) {
+       if (isShow) {
+              $('#'+fieldId).parent().parent().find('[id^=divError_]').remove();
+              $('#'+fieldId).parent().parent().append("<div id='divError_"+fieldId+"'>"+ errorMsg +"</div>");
+              $('#divError_'+fieldId).addClass("error");
+              $('#'+fieldId).parent('div').parent('div').parent('div').addClass("has-error");
+              isErrorFree = false;
+       } else {
+              $('#divError_'+fieldId).removeClass("error");
+              $('#divError_'+fieldId).text('');
+              $('#'+fieldId).parent('div').parent('div').parent('div').removeClass("has-error");
+       }
+}
+
+function showHidedateFieldWarrning(fieldId, warnMsg, isShow) {
+	if (isShow) {
+		$('#'+fieldId).parent().parent().find('[id^=divWarning_]').remove();
+		$('#'+fieldId).parent().parent().append("<div id='divWarning_"+fieldId+"'>"+ warnMsg +"</div>");
+		$('#divWarning_'+fieldId).addClass("warning");
+		$('#'+fieldId).parent('div').parent('div').parent('div').addClass("has-warning");
+	} else {
+		$('#divWarning_'+fieldId).removeClass("warning");
+		$('#divWarning_'+fieldId).text('');
+		$('#'+fieldId).parent('div').parent('div').parent('div').removeClass("has-warning");
+	}
+}
+
+function autoFormatDate(obj) {
+       var date = obj.value;
+       if (date.length == 8) {
+              var day = date.charAt(0) + date.charAt(1);
+              var month = date.charAt(2) + date.charAt(3);
+              var year = date.substr(4, 7);
+              
+              obj.value = day +'-'+ month +'-'+ year;
+       }
+}
+
+function numericValueBetween(id, minVal, maxVal) {
+	var val = $('#' + id).val();
+	if ($.isNumeric(val)) {
+		if (val < minVal || val > maxVal) {
+			showHideFieldError(id, 'Value must be in Range ' + convertToCommaString(minVal) + ' to ' + convertToCommaString(maxVal), true);
+			return false;
+		} else {
+			showHideFieldError(id, '', false);
+			return true;
+		}
+	}
+}
+
+function isValidFloat(id) {
+	var val = $('#'+id).val();
+	if (val != '') {
+		var reg = '^[0-9][0-9]*(.?[0-9][0-9]*)?$';
+		var regex = new RegExp(reg);
+		if (regex.test(val)) {
+			showHideFieldError(id, '', false);
+			return true;
+		} else {
+			$('#'+id).val('');
+			showHideFieldError(id, 'Field must be of format 99,990.99', true);
+			return false;
+		}
+	}
+}
+
+function navigationKeysOnly(e) {
+       var keyCode = e.keyCode;
+//     logKeyCodes(e);
+       if (keyCode == 8 || keyCode == 9                                                                              //8 - backspace, 9 - tab 
+                     || keyCode == 37 || keyCode == 38 || keyCode == 39 || keyCode == 40        //37-left, 38-up, 39-right, 40-down
+                     || keyCode == 46 || keyCode == 35 || keyCode == 36                                       //46-delete, 35-end, 36-home
+                     || keyCode == 116)                                                                                           //116-f5, 32 - space
+              return true;
+       else
+              return false;
+}
+
+
+function integerOnly1(e, obj) {
+    var val = obj.value;
+    if(obj.value == '') {
+       checkEmptyFieldError(obj.id, '');
+    }
+    else {
+    var reg = '^[0-9]*$';
+    var regex = new RegExp(reg);
+    if (regex.test(val)) {
+          showHideFieldError(obj.id, '', false);
+          $("#"+obj.id).val(padString(val, 6));
+          return true;
+    } else {
+          obj.value = '';
+          showHideFieldError(obj.id, 'Field must be of form 000009.', true);
+          return false;
+      }
+    }
+}
+
+function integerOnlyOld(e, obj) {
+	var val = obj.value;
+	var reg = '^[0-9]*$';
+	var regex = new RegExp(reg);
+	if (regex.test(val)) {
+		showHideFieldError(obj.id, '', false);
+		return true;
+	} else {
+		obj.value = '';
+		showHideFieldError(obj.id, 'Field must contain numbers only.', true);
+		return false;
+	}
+}
+
+function integerOnly(e) {
+	e = e || window.event;
+	var code = e.which || e.keyCode;
+	if (!e.ctrlKey) {
+		var arrIntCodes1 = new Array(96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 8, 9, 116);   // 96 TO 105 - 0 TO 9 (Numpad)
+		if (!e.shiftKey) {							//48 to 57 - 0 to 9 
+			arrIntCodes1.push(48);					//These keys will be allowed only if shift key is NOT pressed
+			arrIntCodes1.push(49);					//Because, with shift key (48 to 57) events will print chars like @,#,$,%,^, etc.
+			arrIntCodes1.push(50);
+			arrIntCodes1.push(51);
+			arrIntCodes1.push(52);
+			arrIntCodes1.push(53);
+			arrIntCodes1.push(54);
+			arrIntCodes1.push(55);
+			arrIntCodes1.push(56);
+			arrIntCodes1.push(57);
+		}
+		var arrIntCodes2 = new Array(35, 36, 37, 38, 39, 40, 46);
+		if ($.inArray(e.keyCode, arrIntCodes2) != -1) {
+			arrIntCodes1.push(e.keyCode);
+		}
+		if ($.inArray(code, arrIntCodes1) == -1) {
+			return false;
+		}
+	}
+    return true;
+}
+
+function floatOnly(e, obj) {
+       e = e || window.event;
+       var code = e.which || e.keyCode;
+       var arrIntCodes1 = new Array(48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 8, 9, 116);
+       var arrIntCodes2 = new Array(35, 36, 37, 38, 39, 40);
+       if ($.inArray(e.keyCode, arrIntCodes2) != -1) {
+              arrIntCodes1.push(e.keyCode);
+       }
+       if (e.keyCode == 46) {
+              arrIntCodes1.push(e.keyCode);
+       }
+       if (e.which == 46 && obj.value != '' && obj.value.indexOf('.') == -1) {
+              arrIntCodes1.push(e.which);
+       }
+       if ($.inArray(code, arrIntCodes1) == -1) {
+              return false;
+       }
+       return true;
+}
+
+function charOnly(e) {
+       e = e || window.event;
+       var code = e.which;
+//     logKeyCodes(e);
+       if ((code >= 65 && code <= 90) || navigationKeysOnly(e)) {
+              return true;
+       }
+       return false;
+}
+
+function charSpaceOnly(e) {
+       e = e || window.event;
+       var code = e.which;
+       if (charOnly(e) || code == 32) {
+              return true;
+       }
+       return false;
+}
+
+function charSpaceIntegerOnly(e, obj) {
+//     logKeyCodes(e);
+       if (charSpaceOnly(e) || integerOnly(e)) {
+              return true;
+       }
+       return false;
+}
+
+function charIntegerOnly(e, obj) {
+       if (charOnly(e) || (!e.shiftKey && integerOnly(e))) {
+              return true;
+       }
+       return false;
+}
+
+function logKeyCodes(e) {
+       console.log('Key : ' + e.keyCode + '     Char : ' + e.charCode + '  Which : ' + e.which + 
+                     '      Character : ' + String.fromCharCode(e.keyCode));
+}
+
+function isFutureDate(idate1){
+       var today = new Date().getTime(),
+       idate = idate1.split("-");
+       idate = new Date(idate[2], idate[1]-1, idate[0]);
+       return (today - idate) < 0 ? true : false;
+}
+
+
+function isThreeMonthEarlierDate(idate1){
+       var d = new Date();
+       d.setMonth(d.getMonth() - 3);
+       var ThreeMonthEarlierDate =d,
+       idate = idate1.split("-");
+       idate = new Date(idate[2], idate[1]-1, idate[0]);
+       return ThreeMonthEarlierDate > idate ? true : false;
+}
+
+function isThreeMonthYrEarlier(idate1){
+       var d = new Date();
+       d.setMonth(d.getMonth() - 3);
+       var ThreeMonthEarlierDate =d,
+       idate = idate1.split("-");
+       idate = new Date(idate[1], idate[0]-1, '01');
+       return ThreeMonthEarlierDate > idate ? true : false;
+}
+
+function isFutureMonthYr(idate1){
+       var today = new Date(new Date().getFullYear(),new Date().getMonth()),
+       idate = idate1.split("-");
+       idate = new Date(  idate[1],idate[0]-1);
+       return today < idate  ? true : false;
+}
+
+function isPastMonthYr(idate1){
+       var today = new Date(new Date().getFullYear(),new Date().getMonth()),
+       idate = idate1.split("-");
+       idate = new Date(  idate[1],idate[0]-1);
+       return today > idate  ? true : false;
+}
+
+function isPastWhithin3MonthYr(idate1){
+       var today = new Date(new Date().getFullYear(),new Date().getMonth()),
+       idate = idate1.split("-");
+       idate = new Date(  idate[1],idate[0]-1);
+       return   today.getMonth()-idate.getMonth() <=3 && today > idate ? true : false;
+}
+
+
+function truncateTable(tableId, fromRow) {
+       var table = document.getElementById(tableId);
+    var noOfRows = table.rows.length;
+    for (var i=fromRow; i<=noOfRows; noOfRows--) {
+        table.deleteRow(noOfRows-1);
+    };
+}
+
+
+function bindCustomEvents() {
+	
+}
+
+$(document).on('keydown', '.integerOnly', function (event) {
+	valKeyDown = this.value;
+	return integerOnly(event);
+});
+
+$(document).on('keyup', '.integerOnly', function (event) {			//This is to protect if user copy-pastes some character value ,..
+	valKeyUp = this.value;							//In that case, pasted text is replaced with old value,
+	if (!new RegExp('^[0-9]*$').test(valKeyUp)) {	//which is stored in 'valKeyDown' at keydown event.
+		$(this).val(valKeyDown);					//It is not possible to check this inside 'integerOnly' function as,
+	}												//one cannot get the text printed by keydown event 
+});													//(that's why, this is checked on keyup)
+
+$(document).on('input propertychange','.integerOnly', function(e) {	//if user copy-pastes some character value using mouse
+	valKeyUp = this.value;
+	if (!new RegExp('^[0-9]*$').test(valKeyUp)) {
+		$(this).val(valKeyDown);
+	}
+});
+
+$(document).on('keydown', '.floatOnly', function (event) {
+	return floatOnly(event, this);
+});
+
+$(document).on('keydown', '.charOnly', function (event) {
+	return charOnly(event);
+});
+
+$(document).on('keydown', '.charSpaceOnly', function (event) {
+	return charSpaceOnly(event);
+});
+
+$(document).on('keydown', '.charSpaceIntegerOnly', function (event) {
+	return charSpaceIntegerOnly(event, this);
+});
+
+$(document).on('keydown', '.charIntegerOnly', function (event) {
+	return charIntegerOnly(event, this);
+});
+
+$(document).on('blur', '.toUpper', function () {
+	changeCase(this, 'U');
+});
+
+$(document).on('keyup', '.toLower', function () {
+	changeCase(this, 'L');
+});
+
+$(document).on('blur', 'input.reqd', function(){
+	checkEmptyFieldError(this.id, '');
+});
+
+$(document).on('blur', 'select.reqd', function(){
+	checkEmptyFieldError(this.id, '');
+});
+
+$(document).on('blur', 'textarea.reqd', function(){
+	checkEmptyFieldError(this.id, '');
+});
+
+
+$(document).on('blur', 'input.reqd-date', function () {
+	checkEmptydateFieldError(this.id, '');
+});
+
+$(document).on('blur', '.padCustRecTktNo', function () {
+	if ($(this).val() != '') {
+		$(this).val(padString($(this).val(), 6));
+	}
+});
+
+bindCustomEvents();
+
+$('.autoFormatDate').keyup(function () {
+       autoFormatDate(this);
+});
+
+$('#btnClearFields').click(function () {
+       $('input:not([type=button]), select').val('');
+       location.reload();
+});
+
+function ConvertToUpperCase(obj) {
+    var value = $(obj).val();
+    $(obj).val(value.toUpperCase());
+}
+
+function highlightRow(tr, table) {
+    if ($(tr).hasClass('SelectedRow')) {
+        //$(tr).removeClass('SelectedRow');
+    } else {
+        table.$('tr.SelectedRow').removeClass('SelectedRow');
+        $(tr).addClass('SelectedRow');
+    }
+}
+
+/****Date Checking****/
+
+/*
+if($.fn.hasOwnProperty('datetimepicker')){
+	$.fn.datetimepicker.defaults.keepInvalid = true;
+	 
+	}
+
+
+if($.fn.hasOwnProperty('datetimepicker')){
+$.fn.datetimepicker.defaults.keepInvalid = true;
+ 
+}
+
+
+function checkDate(m,d,y){
+    return m > 0 && m < 13 && y > 0 && y < 32768 && y.length == 4 && d > 0 && d <= (new Date(y, m, 0))
+.getDate();
+  }
+
+ function checkMonth(m){
+   return m > 0 && m < 13;
+ } 
+
+ function checkDay(d){
+  return d > 0 && d <= 31;
+ }
+
+ function checkYear(y){
+  return y > 0 && y < 32768 && y.length == 4;
+ }
+
+$('input[data-format]').on('blur', function() {
+    var s = $(this).val();
+    if (s == "") {
+        return false;
+    }
+    
+    var format = $(this).attr('data-format');
+    var a = [];
+    var m, d, y;
+    if (format == "dd-MM-yyyy") {
+        if (s.indexOf('-') > -1) {
+            a = s.split('-');
+            if (a.length != 3) {
+                showHidedateFieldError($(this).attr('id'), "Invalid Date", true);
+                return false;
+            }
+        } else {
+            if (s.length == 8) {
+                a[0] = s.substring(0, 2);
+                a[1] = s.substring(2, 4);
+                a[2] = s.substring(4, 8);
+                $(this).val(a[0] + '-' + a[1] + '-' + a[2]);
+            } else {
+                showHidedateFieldError($(this).attr('id'), "Invalid Date", true);
+                return false;
+            }
+        }
+
+        m = a[1];
+        d = a[0];
+        y = a[2];
+        var err = checkDate(m, d, y);
+        if (!err) {
+            if (!(checkDay(d))) {
+                showHidedateFieldError($(this).attr('id'), "Invalid Day", true);
+            } else if (!(checkMonth(m))) {
+                showHidedateFieldError($(this).attr('id'), "Invalid Month", true);
+            } else if (!(checkYear(y))) {
+                showHidedateFieldError($(this).attr('id'), "Invalid Year", true);
+            } else if (!(d > 0 && d <= (new Date(y, m, 0)).getDate())) {
+                showHidedateFieldError($(this).attr('id'), "Invalid Day", true);
+            } else {
+                showHidedateFieldError($(this).attr('id'), "Invalid Date", true);
+            }
+
+        } else {
+            showHidedateFieldError($(this).attr('id'), '', false);
+        }
+    } else if (format == "MM-yyyy") {
+        if (s.indexOf('-') > -1) {
+            a = s.split('-');
+            if (a.length != 2) {
+                showHidedateFieldError($(this).attr('id'), "Invalid Date", true);
+                return false;
+            }
+        } else {
+            if (s.length == 6) {
+                a[0] = s.substring(0, 2);
+                a[1] = s.substring(2, 6);
+                $(this).val(a[0] + '-' + a[1]);
+            } else {
+                showHidedateFieldError($(this).attr('id'), "Invalid Date", true);
+                return false;
+            }
+        }
+
+        m = a[0];
+        y = a[1];
+
+        if (!(checkMonth(m))) {
+            showHidedateFieldError($(this).attr('id'), "Invalid Month", true);
+        } else if (!(checkYear(y))) {
+            showHidedateFieldError($(this).attr('id'), "Invalid Year", true);
+        }
+        else {
+            showHidedateFieldError($(this).attr('id'), '', false);
+        }
+    }
+    else if (format == "yyyy"){
+      if (!checkYear(s)) {
+        showHidedateFieldError($(this).attr('id'), "Invalid Year", true);
+      }
+       else {
+            showHidedateFieldError($(this).attr('id'), '', false);
+        }
+    }
+
+});
+
+$(document).on('keypress', 'input[data-format]', function (e) {
+    var regex = new RegExp("^[0-9-]+$");
+    var value = $(this).val();
+    var format = $(this).attr('data-format');
+    var str = String.fromCharCode(!e.charCode ? e.which : e.charCode);
+    if (regex.test(str)) {
+        if(format == 'yyyy'){
+          if(value.length < 4){
+            return true;
+          }
+        }
+        else{
+         return true; 
+        }
+        
+    }
+
+    e.preventDefault();
+    return false;
+});
+*/
+/****Date Checking****/
+
+if($.fn.hasOwnProperty('dataTableExt')){
+	//To paginate programitically
+	$.fn.dataTableExt.oApi.fnGetPageOfRow = function(oSettings, iRow) {
+	    // get the displayLength being used
+	    var displayLength = oSettings._iDisplayLength;
+
+	    // get the array of nodes, sorted (default) and using current filters in place for all pages (default)
+	    var taskListItems = this.$("tr", {
+	        "filter": "applied"
+	    });
+
+	    // if there's more than one page continue, else do nothing
+	    if (taskListItems.length <= displayLength) return;
+
+	    // get the index of the row inside that sorted/filtered array
+	    var index = taskListItems.index(iRow);
+
+	    // get the page by removing the decimals
+	    var page = Math.floor(index / displayLength);
+
+	    // paginate to that page 
+	    this.fnPageChange(page);
+	};
+	
+}
+
+//Autoscroll of div
+$(document).on('click', 'a.scrollable', function(e) {
+	 if($(this.hash) != undefined){
+		 $('html,body').animate({ scrollTop: ($(this.hash).offset().top - 80)}, 500);
+		    return false;
+		    e.preventDefault();	 
+	 }
+});
+
+//Auto FOcus on OK Button of MsgBox
+$('#msg').on('shown.bs.modal', function () {
+	$('.closeModalsuccess').focus();
+	$('.closeModalinfo').focus();
+	$('.closeModalwarning').focus();
+});
+
+function convertTo24Hour(time){
+	if(time != ""){
+		try{
+			var hours = Number(time.match(/^(\d+)/)[1]);
+			var minutes = Number(time.match(/:(\d+)/)[1]);
+			var AMPM = time.match(/\s(.*)$/)[1];
+			if(AMPM == "PM" && hours<12) hours = hours+12;
+			if(AMPM == "AM" && hours==12) hours = hours-12;
+			var sHours = hours.toString();
+			var sMinutes = minutes.toString();
+			if(hours<10) sHours = "0" + sHours;
+			if(minutes<10) sMinutes = "0" + sMinutes;
+			return sHours + ":" + sMinutes;	
+		}
+		catch(e){
+			console.log(e);
+		}
+			
+	}
+	else{
+		return '';
+	}
+	
+}
+
+function convertTo12Hour (time) {
+	if(time != ""){
+		try{
+				//Check correct time format and split into components
+			   time = time.toString ().match (/^([01]\d|2[0-3])(:)([0-5]\d)(:[0-5]\d)?$/) || [time];
+
+			    if (time.length > 1) { // If time format correct
+			      time = time.slice (1);  // Remove full string match value
+			      time[5] = +time[0] < 12 ? ' AM' : ' PM'; // Set AM/PM
+			      time[0] = +time[0] % 12 || 12; // Adjust hours
+			    }
+			    return time.join (''); // return adjusted time or original string
+		}
+		catch(e){
+			console.log(e);
+		}
+
+	}
+	else{
+		return '';
+	}
+}
+
+//compare two mettod
+
+function compareDates(src,dest){
+	var flag =false;
+	var strStartDate = src;
+    var strEndDate = dest;
+
+    arstartDate = strStartDate.split("-");
+    arendDate = strEndDate.split("-");
+   
+    startDate = new Date(arstartDate[1]+ '/' +arstartDate[0]+ '/' +arstartDate[2]);
+    endDate =new Date(arendDate[1]+ '/' +arendDate[0]+ '/' +arendDate[2]);	
+   if(startDate>endDate) {
+    	flag = true;
+    }	
+   return flag ;
+}
+
+function compareExactDates(src,dest){
+	var flag =false;
+	var strStartDate = src;
+    var strEndDate = dest;
+
+    arstartDate = strStartDate.split("-");
+    arendDate = strEndDate.split("-");
+   
+    startDate = new Date(arstartDate[2],arstartDate[1], arstartDate[0], 0,0,0,0);
+    endDate = new Date(arendDate[2],arendDate[1], arendDate[0], 0,0,0,0);	
+   if(startDate>endDate) {
+    	flag = true;
+    }	
+   return flag ;
+}
+
+function  calculateMonths(src,dest){
+	var strStartDate = src;
+    var strEndDate = dest;
+    var months;
+    var flag =false;
+    arstartDate = strStartDate.split("-");
+    arendDate = strEndDate.split("-");
+   
+    startDate = new Date(arstartDate[1]+ '/' +arstartDate[0]+ '/' +arstartDate[2]);
+    endDate =new Date(arendDate[1]+ '/' +arendDate[0]+ '/' +arendDate[2]);	
+    months = (endDate.getFullYear() - startDate.getFullYear()) * 12;
+    months += endDate.getMonth() - startDate.getMonth();
+    if(months>=12){
+    	flag = true;
+    }
+    return flag;
+}
+function isValidEmailAddress(str) {
+	   var pattern =/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+	   return pattern.test(str);  // returns a boolean 
+}
+
+
+function validateRegexVal(id,reg) {
+	var val = $('#'+id).val();
+	if (val != '') {
+		var regex = new RegExp(reg);
+		if (regex.test(val)) {
+			showHideFieldError(id, '', false);
+			return true;
+		} else {
+			//$('#'+id).val('');
+			showHideFieldError(id, 'Invalid Value', true);
+			return false;
+		}
+	}
+}
+
+function isDateGreaterThanDays(strStartDate, strEndDate, days) {
+	    var arStartDate = strStartDate.split("-");
+	    var arEndDate = strEndDate.split("-");
+	   
+        var date1 = new Date(arStartDate[2],arStartDate[1]-1, arStartDate[0]);
+        var date2 = new Date(arEndDate[2], arEndDate[1]-1, arEndDate[0]);
+        
+        var timeDiff = Math.abs(date2.getTime() - date1.getTime());
+        var diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24)); 
+        
+        return (diffDays > days) ? true : false;
+	}
+$.ajaxSetup({
+    beforeSend: function(xhr) {
+     xhr.setRequestHeader("CSRF_TOKEN", $("#csrfTokenInput").val());
+ }, 
+    complete: function(xhr,status){
+          $("#csrfTokenInput").val(xhr.getResponseHeader("csrfToken"));
+          if(xhr.getResponseHeader('CSRFTokenFail') == "FAIL") {
+                 getCSRFLogout();
+          }            
+    }
+});
+
