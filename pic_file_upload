@@ -1,0 +1,214 @@
+Jquery:
+//validation for upload file starts here
+	  	var vcfData = new FormData($('#formUploadFiles')[0]);
+	  	var size = 0;
+	  	var totalSize = 0;
+		$.each($("input[type=file]"), function(i, obj) {
+	        $.each(obj.files,function(j,file){
+	        	vcfData.append('file['+i+']', file);
+	        	var k = i +1;
+	        	size = $('#cust_file_'+k)[0].files[0].size;
+	        	totalSize = totalSize + size;
+	        	//if total file size greater than 10 mb
+	        	if(totalSize > 10485760) {
+	        		alert('Files size is greater than 10 MB');
+	        		return false;
+	        	}
+	    		var fileName = file.name;
+	    		var extension = fileName.replace(/^.*\./, '');
+	    		if($.inArray(extension, ['png','jpg','jpeg','doc','docx','pdf','avi','mp4','flv','PNG','JPG','JPEG','DOC','DOCX','PDF','AVI','MP4','FLV']) == -1) {
+	    				 alert('Invalid file extension of file ' + fileName);
+	    			   return false;
+	    		}
+	        });
+	     });
+		//validation for upload file ends here
+    
+    var data = {
+    };
+    
+    $.ajax ({
+		     			type : 'POST',
+		     			url : '/saveDetails',
+		     			data : JSON.stringify(data),
+		     			async : false,
+		     			cache:false,
+		     			contentType : 'application/json',
+		     			success : function(data) {
+              //if status success
+              if(totalSize > 0) {
+		     						//upoldaing code start
+		    		        		$.ajax({
+		    		        			url : "/uploadFiles",
+		    		        			type : "POST",
+		    		        			data : vcfData,
+		    		        			processData : false,
+		    		        			contentType : false,
+		    		        			cache : false,
+		    		        			success : function(data) {
+                            alert('success');
+		    		        			}
+		    		      });
+              }
+           });
+           
+   JSP:
+   <div class="col-xs-12">
+								<div class="form-group">									
+									<div class="col-xs-12">									
+										<label class="control-label col-xs-2"><i class="fa fa-plus"></i> <a class="add-browse">Attachments</a></label>
+										<div class="col-xs-8">
+											<form class="form-horizontal  browse-list"
+															enctype='multipart/form-data' role="form"
+															id="formUploadFiles">
+												<div class="form-group">
+														<div class="row">
+															<div class="col-xs-9">
+																<div class="fileupload fileupload-new form-control"
+																	data-provides="fileupload">
+																	<span class="fileupload-preview"></span> <a href="#"
+																		class="close fileupload-exists"
+																		data-dismiss="fileupload" style="float: none">x</a>
+																	<input type="hidden" value="" name=""> <span
+																		class="btn btn-primary btn-file pull-right"><span
+																		class="fileupload-new">Browse..</span> <span
+																		class="fileupload-exists">Change</span> 
+                                    <input type="file" id="cust_file_1" name="cust_file_1">
+																	</span>
+																</div>
+															</div>
+														</div>
+													</div>
+											</form>
+										</div>
+									</div>									
+								</div>
+							</div>
+              
+ Controller:
+ @RequestMapping(value = "/uploadFiles", method = RequestMethod.POST, produces = "application/json")
+	  @ResponseBody
+	  public GenericVO uploadFiles(MultipartRequest mpRequest,
+	      HttpServletRequest req) {
+        //start create inside pojo
+            private LinkedHashMap<String[], MultipartFile> mapUploadFile        = new LinkedHashMap<String[], MultipartFile>();
+        //end
+           objBO.setMapUploadFile(getFileMap(mpRequest));
+        }
+   
+   
+   private LinkedHashMap<String[], MultipartFile> getFileMap(MultipartRequest mpRequest) {
+		    LinkedHashMap<String[], MultipartFile> mapFile = new LinkedHashMap<String[], MultipartFile>();
+		    MultipartFile mfTempFile = null;
+		    String strFileID = "";
+		    List<String> lstFileNames = new ArrayList<String>();
+		    try {
+		      Iterator<String> e = mpRequest.getFileNames();
+		      while (e.hasNext()) {
+		        strFileID = e.next();
+		        String[] strMapKey = new String[2];
+		        mfTempFile = mpRequest.getFiles(strFileID).get(0);
+		        if (mfTempFile != null && !mfTempFile.isEmpty() && !lstFileNames.contains(mfTempFile.getOriginalFilename())) {
+		          strMapKey[0] = strFileID;
+		          strMapKey[1] = mfTempFile.getOriginalFilename();
+		          lstFileNames.add(mfTempFile.getOriginalFilename());
+		          mapFile.put(strMapKey, mfTempFile);
+		        }
+		      }
+		    }
+		    catch (Exception e) {
+		    }
+		    return mapFile;
+		  }
+      
+   DAO:
+   public void uploadFiles(object passed herefrom controller layer) {
+   File[] files = new File[objBO.getMapUploadFile().size()];
+   int i = 0;
+			for (String[] str : objBO.getMapUploadFile().keySet()) {
+				files[i++] = CASCommonUtil.convertMultipartFileToIOFile(objBO.getMapUploadFile().get(str));
+			}
+      
+      //set blob data
+      .setParameter("bLob", getByteStreamFromFile(zipFiles(files,true,"myfilesname")))
+   }
+   
+   private static File convertMultipartFileToIOFile(MultipartFile mpFile) {
+        File convFile = null;
+        try {
+            convFile = new File(mpFile.getOriginalFilename());
+            mpFile.transferTo(convFile);
+        }
+        catch (IllegalStateException e) {        
+        }
+        catch (IOException e) {           
+        }
+        return convFile;
+    }
+    private static byte[] getByteStreamFromFile(File uploadFile) {
+        byte[] bFile = null;
+        FileInputStream fileInputStream = null;
+        try {
+            bFile = new byte[(int) uploadFile.length()];
+            fileInputStream = new FileInputStream(uploadFile);
+            fileInputStream.read(bFile);
+        }
+        catch (Exception e) {
+        }
+        finally {
+            try {
+                fileInputStream.close();
+            }
+            catch (IOException e) {
+            }
+        }
+        return bFile;
+    }
+    
+    private static File zipFiles(File[] inputFiles, Boolean isTrue, String zipFileName) {
+        FileOutputStream fos = null;
+        ZipOutputStream zipOut = null;
+        FileInputStream fis = null;
+        File zipFile = null;
+        ZipEntry ze =  null;
+        try {
+            zipFile = new File(zipFileName + ".zip");
+            fos = new FileOutputStream(zipFile);
+            zipOut = new ZipOutputStream(new BufferedOutputStream(fos));
+         //Started Zipping Files 
+            for (File input : inputFiles) {
+                fis = new FileInputStream(input);
+                String uniqueidField= UUID.randomUUID().toString().replace("-", "");
+                if(isTrue) {
+                  ze  = new ZipEntry(uniqueidField.concat("_").concat(input.getName()));
+                } else {           
+                  ze = new ZipEntry(input.getName());
+                }
+                zipOut.putNextEntry(ze);
+                
+                 byte[] tmp = new byte[4*1024];
+                int size = 0;
+                while((size = fis.read(tmp)) != -1){
+                    zipOut.write(tmp, 0, size);
+                }
+                zipOut.flush();
+                fis.close();
+            }
+            //Files Zipped Successfully
+            zipOut.close();
+        } catch (FileNotFoundException fnfe) {
+        } catch (IOException ioe) {
+        } catch (Exception e) {
+        }finally{
+        for (File input : inputFiles) {
+             input.delete();
+        }
+        try {
+                     zipOut.close();
+                     fis.close();
+               fos.close();
+              } catch (IOException e) {
+               }
+        }
+        return zipFile;
+    }
