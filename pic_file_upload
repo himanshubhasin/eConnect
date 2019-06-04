@@ -126,7 +126,7 @@ Jquery:
    File[] files = new File[objBO.getMapUploadFile().size()];
    int i = 0;
 			for (String[] str : objBO.getMapUploadFile().keySet()) {
-				files[i++] = CASCommonUtil.convertMultipartFileToIOFile(objBO.getMapUploadFile().get(str));
+				files[i++] = convertMultipartFileToIOFile(objBO.getMapUploadFile().get(str));
 			}
       
       //set blob data
